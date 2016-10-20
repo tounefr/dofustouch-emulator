@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/jquery-ui-1.12.1/jquery-ui.min.css" />
+    <title>Mise à jour</title>
+    <style>
+        * {
+            overflow: hidden;
+        }
+        body {
+            padding: 10px;
+        }
+        #progressBarIndice {
+            display: block;
+            margin: auto;
+        }
+        #changeLogBtn {
+            display: block;
+            margin: auto;
+        }
+        li {
+            list-style: circle;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="row">
+            <!--
+            <button type="button" id="changeLogBtn" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#changeLogModal" disabled>
+                Voir le ChangeLog
+            </button>
+            -->
+
+            <div class="modal fade" id="changeLogModal" tabindex="-1" role="dialog" aria-labelledby="changeLogModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="changeLogModalLabel">ChangeLog</h4>
+                        </div>
+                        <div class="modal-body" id="changeLogContent">
+                            Chargement du ChangeLog...
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 40px;">
+            <span class="text-center" id="progressBarIndice" style="font-weight: bold;">Lancement du téléchargement...</span>
+        </div>
+        <div class="row">
+            <div class="progress">
+                <div id="progressBar" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                    <span class="sr-only">20% Complete</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    window.$ = window.jQuery = require('./assets/js/jquery-3.1.1.min.js');
+</script>
+<script>
+    const {app} = require('electron').remote;
+    const https = require('https');
+    const fs = require('fs');
+    const os = require('os');
+    const updater = require('electron').remote.require('./updater');
+    const {spawn} = require('child_process');
+    const url = require('url');
+
+    function formatDownloadUnit(count) {
+        if (count >= 1000000) {
+            return (Math.round((count / 1000000) * 100) / 100) + ' Mb';
+        }
+        else if (count >= 1000) {
+            return (Math.round((count / 1000) * 100) / 100) + ' Kb';
+        }
+        else {
+            return (Math.round(count * 100) / 100) + ' B';
+        }
+    }
+
+    function downloadSetup(saveFilePath, binPath) {
+        console.log(saveFilePath);
+        https.get(binPath, (res) => {
+            var body = '';
+            var fileLength = res.headers['content-length'];
+            var downloaded_in_sec = 0;
+            var lastTime = Math.round(new Date().getTime()/1000);
+            var totalDownloaded = 0;
+            var file = fs.createWriteStream(saveFilePath);
+
+            res.on('data', (chunk) => {
+                downloaded_in_sec += chunk.length;
+                body += chunk;
+                totalDownloaded += chunk.length;
+
+                file.write(chunk);
+
+                var currentTime = Math.round(new Date().getTime()/1000);
+                var downloadLeft = fileLength - totalDownloaded;
+                var pourcentDownloaded = Math.floor((totalDownloaded / fileLength) * 100);
+
+                if (currentTime > lastTime) {
+                    $('#progressBar').css({
+                        width: pourcentDownloaded + '%',
+                        ariaValuenow: pourcentDownloaded
+                    });
+                    $('#progressBarIndice').html('<strong>'+formatDownloadUnit(downloadLeft) + '</strong> restant - <strong>'+pourcentDownloaded+'%</strong> - ' + formatDownloadUnit(downloaded_in_sec) + '</>/s');
+                    lastTime = currentTime;
+                    downloaded_in_sec = 0;
+                }
+            });
+
+            res.on('end', () => {
+                file.end(function() {
+                    file.close();
+                    if (totalDownloaded != fileLength) {
+                        $('#progressBarIndice').html('<span class="text-error">Impossible de télécharger la mise à jour.</span>');
+                        return false;
+                    }
+                    $('#progressBarIndice').html('<span class="text-error">Impossible d\'enregistrer vers <strong>'+saveFilePath+'</strong> !</span>');
+                    $('#progressBarIndice').html('Terminé !<br />Veuillez lancer l\'installateur pour appliquer la mise à jour !<br /><strong>'+saveFilePath+'</strong>');
+                    $('#progressBar').css({
+                        width: '100%',
+                        ariaValuenow: 100
+                    });
+                });
+            });
+        }).on('error', (e) => {
+            $('#progressBarIndice').html('<span class="text-error">Impossible de télécharger la mise à jour ! Veuillez réessayer ultérieurement.</span>');
+        });
+    }
+
+    function loadChangeLog(webSite) {
+        $('#changeLogBtn').removeAttr('disabled');
+        $.ajax({
+            method: 'GET',
+            url: url.resolve(webSite, 'changelog.html'),
+        }).done(function(content) {
+            $('#changeLogContent').html(content);
+            $('#changeLogBtn').trigger('click');
+        });
+    }
+
+    $(function() {
+        const emulator = require('electron').remote.require('./main');
+        const updater = require('electron').remote.require('./updater');
+
+        loadChangeLog(emulator.webSite);
+        downloadSetup(updater.toSaveFilePath, updater.binPath);
+    });
+</script>
+<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+</html>

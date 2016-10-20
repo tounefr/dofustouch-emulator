@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link rel="stylesheet" href="styles-native.css" />
+</head>
+<body>
+
+<script src="script.js"></script>
+<script>
+    const Emulator = require('electron').remote.require('./main');
+
+    setTimeout(function() {
+
+        window.onresize = function() {
+            window.gui._resizeUi();
+        };
+
+    }, 2000);
+
+</script>
+</body>
+</html>

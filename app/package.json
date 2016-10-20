@@ -1,0 +1,13 @@
+{
+  "name": "DofusTouchEmulateur",
+  "version": "1.0.2",
+  "main": "main.js",
+  "description": "Emulateur PC/MAC/Linux pour le jeu DofusTouch",
+  "author": "Developer <contact@dofustouch.tk>",
+  "email": "contact@dofustouch.tk",
+  "homepage": "https://emulator.dofustouch.tk/",
+  "dependencies": {
+    "jquery": "^3.1.1",
+    "request": "^2.75.0"
+  }
+}
