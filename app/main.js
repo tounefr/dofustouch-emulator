@@ -2,18 +2,23 @@ const {app, BrowserWindow, Menu, autoUpdater} = require('electron');
 const url = require('url');
 const os = require('os');
 
-//require('electron-reload')(__dirname);
+require('electron-reload')(__dirname);
 
 var Emulator = module.exports = {
 
-    openGameWindow: function () {
-        var win = new BrowserWindow({
+    openGameWindow: function (account) {
+        var options = {
             width: 1024,
             height: 768,
             useContentSize: true,
             center: true
-        });
+        };
+        if (typeof account != "undefined") {
+            options.partition = 'persist:'+account.accountUsername;
+        }
+        var win = new BrowserWindow(options);
 
+        win.account = account;
         win.loadURL(`file://${__dirname}/game_frame.html`);
 
         if (this.gameWindows.length > 0)
@@ -30,10 +35,31 @@ var Emulator = module.exports = {
         this.gameWindows.push(win);
     },
 
+    openMultiGameFrameWindow: function(accounts) {
+        var options = {
+            width: 1024,
+            height: 768,
+            useContentSize: true,
+            center: true
+        };
+        var win = new BrowserWindow(options);
+
+        win.accounts = accounts;
+        win.loadURL(`file://${__dirname}/multi_gameframe.html`);
+
+        if (this.devMode)
+            win.webContents.openDevTools();
+
+        win.on('closed', () => {
+            win = null;
+        });
+    },
+
     openMainWindow: function () {
         var win = new BrowserWindow({
-            width: 700,
-            height: 300
+            width: 900,
+            height: 700,
+            resizable: false
         });
 
         win.loadURL(`file://${__dirname}/main.html`);
@@ -107,7 +133,7 @@ var Emulator = module.exports = {
                     {
                         label: 'A propos',
                         click () { require('electron').shell.openExternal('https://emulator.dofustouch.tk/') }
-                    }
+                        }
                 ]
             }
         ];
@@ -116,15 +142,29 @@ var Emulator = module.exports = {
         Menu.setApplicationMenu(menu)
     },
 
+    openGameWindows: function() {
+        var accounts = this.db.get('accounts').value();
+        for (var account in accounts) {
+            this.openGameWindow(account);
+        }
+    },
+
     init: function () {
-        this.devMode = false;
+        this.devMode = true;
         this.mainWindow = null;
         this.gameWindows = [];
         this.version = '1.0.2';
         this.webSite = 'https://emulator.dofustouch.tk/';
+        this.db = require('lowdb')('db.json');
+
+        this.db.defaults({
+            teams: [],
+            accounts: []
+        }).value();
 
         Emulator.setMenu();
-        Emulator.openGameWindow();
+        this.openMainWindow();
+        //this.openGameWindow();
         require('./updater').init();
     }
 };

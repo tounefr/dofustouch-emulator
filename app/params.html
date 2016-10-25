@@ -1,0 +1,32 @@
+<div id="content"></div>
+
+<script id="template" type="text/x-handlebars-template">
+
+    <div class="container-fluid">
+        <fieldset>
+            <legend>Paramètres</legend>
+            <div class="container-fluid">
+
+            </div>
+        </fieldset>
+    </div>
+</script>
+
+<script>
+    function eventListener()
+    {
+
+    }
+
+    $(function () {
+        const handlebars = require('handlebars');
+        const Emulator = require('electron').remote.require('./main');
+
+        var source = $('#template').html();
+        var template = handlebars.compile(source);
+        var html = template(Emulator.db.value());
+        $('#content').html(html);
+
+        eventListener();
+    });
+</script>

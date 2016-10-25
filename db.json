@@ -1,0 +1,24 @@
+{
+  "teams": [
+    {
+      "teamName": "test",
+      "teamAccounts": [],
+      "accounts": [
+        "test1",
+        "test2"
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "accountUsername": "test1",
+      "accountPassword": "test",
+      "accountCharacter": "character1"
+    },
+    {
+      "accountUsername": "test2",
+      "accountPassword": "test",
+      "accountCharacter": "character2"
+    }
+  ]
+}

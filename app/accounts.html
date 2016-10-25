@@ -1,0 +1,207 @@
+<div id="content"></div>
+
+<script id="template" type="text/x-handlebars-template">
+
+    <div class="container-fluid">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Gestion de
+                    comptes</h3>
+            </div>
+            <div class="panel-body" id="account_form">
+                <table class="table table-responsive" id="account_form_table">
+                    <tr>
+                        <th class="text-center">Nom de compte</th>
+                        <th class="text-center">Mot de passe</th>
+                        <th class="text-center">Nom du personnage</th>
+                        <th></th>
+                    </tr>
+                    <form class="form-inline" id="add_account_form">
+                        {{#each accounts}}
+                        <tr>
+                            <td class="text-center">{{accountUsername}}</td>
+                            <td class="text-center" data-password="{{accountPassword}}"><span>********</span> <a href="#" class="show_password"><span
+                                    class="glyphicon glyphicon-eye-open text-right" aria-hidden="true"></span></a></td>
+                            <td class="text-center">{{accountCharacter}}</td>
+                            <td>
+                                <button type="submit" data-account-username="{{accountUsername}}"
+                                        class="btn btn-danger del_account"><span class="glyphicon glyphicon-minus-sign"
+                                                                                 aria-hidden="true"></span></button>
+                            </td>
+                        </tr>
+                        {{/each}}
+                        <tr>
+                            <td>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="accountUsername"
+                                           placeholder="Nom de compte">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="password" class="form-control" id="accountPassword"
+                                           placeholder="Mot de passe">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="accountCharacter"
+                                           placeholder="Nom du personnage">
+                                </div>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-primary" id="add_account"><span
+                                        class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span></button>
+                            </td>
+                        </tr>
+                    </form>
+                </table>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Gestion des
+                    teams</h3>
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label for="teamInputName">Nom de la team :</label>
+                                    <input type="text" class="form-control" id="teamInputName" placeholder="">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" id="add_team"><span
+                                        class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span></button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <table class="table" id="list-teams-table">
+                            <tr>
+                                <th class="text-center">Nom de la team</th>
+                                <th class="text-center col-xs-5">Comptes</th>
+                                <td class="text-center"></td>
+                            </tr>
+                            {{#each teams}}
+                            <tr>
+                                <td>{{teamName}}</td>
+                                <td class="col-xs-5">
+                                    <select class="teamSelectAccounts form-control" data-teamName="{{teamName}}"
+                                            multiple="multiple">
+                                        {{#each ../accounts}}
+                                        <option>{{accountUsername}}</option>
+                                        {{/each}}
+                                    </select>
+                                </td>
+                                <td class="remove_team_td">
+                                    <button type="submit" data-teamName="{{teamName}}" class="btn btn-danger del_team">
+                                        <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"></span></button>
+                                </td>
+                            </tr>
+                            {{/each}}
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</script>
+
+<script>
+    function eventListener() {
+        $('.show_password').click(function (e) {
+            e.preventDefault();
+            var password = $(this).parent().attr('data-password');
+            if ($('>span', this).hasClass('glyphicon-eye-open')) {
+                $('>span', this).removeClass('glyphicon-eye-open');
+                $('>span', this).addClass('glyphicon-eye-close');
+                $('>span', $(this).parent()).html(password);
+            } else {
+                $('>span', this).removeClass('glyphicon-eye-close');
+                $('>span', this).addClass('glyphicon-eye-open');
+                $('>span', $(this).parent()).html('********');
+            }
+        });
+
+        $('#add_account').click(function (e) {
+            e.preventDefault();
+            if ($('#accountUsername').val() == '' || $('#accountPassword').val() == '' || $('#accountCharacter').val() == '')
+                return;
+
+            if (Emulator.db.get('accounts').find({accountUsername: $('#accountUsername').val()}).value())
+                return;
+
+            Emulator.db.get('accounts').push({
+                accountUsername: $('#accountUsername').val(),
+                accountPassword: $('#accountPassword').val(),
+                accountCharacter: $('#accountCharacter').val()
+            }).value();
+            load();
+        });
+
+        $('.del_account').click(function (e) {
+            e.preventDefault();
+            var accountUsername = $(this).attr('data-account-username');
+            Emulator.db.get('accounts').remove({accountUsername: accountUsername}).value();
+            load();
+        });
+
+        $('#add_team').click(function (e) {
+            e.preventDefault();
+
+            if ($('#teamInputName').val() === '')
+                return;
+
+            if (Emulator.db.get('teams').find({teamName: $('#teamInputName').val()}).value())
+                return;
+
+            Emulator.db.get('teams').push({
+                teamName: $('#teamInputName').val(),
+                teamAccounts: []
+            }).value();
+            load();
+        });
+
+        $('.del_team').click(function (e) {
+            e.preventDefault();
+            var teamName = $(this).attr('data-teamName');
+            Emulator.db.get('teams').remove({teamName: teamName}).value();
+            load();
+        });
+
+        $('.teamSelectAccounts').on('select2:select select2:unselect', function (e) {
+            var teamName = $(this).attr('data-teamName');
+            var values = $(this).val();
+            Emulator.db.get('teams').find({teamName: teamName}).set('accounts', values).value();
+        });
+
+        $('.teamSelectAccounts').select2();
+
+        $('.teamSelectAccounts').each(function (index, elem) {
+            var teamName = $(elem).attr('data-teamName');
+            var values = Emulator.db.get('teams').find({teamName: teamName}).get('accounts').value();
+            $(elem).val(values);
+        }).trigger('change');
+    }
+
+    $(function () {
+        const handlebars = require('handlebars');
+        const Emulator = require('electron').remote.require('./main');
+
+        var source = $('#template').html();
+        var template = handlebars.compile(source);
+        var html = template(Emulator.db.value());
+        $('#content').html(html);
+
+        eventListener();
+    });
+</script>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/select2.min.css" />
+    <style>
+        .game_frame {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        .navbar {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+
+    <script id="template" type="text/x-handlebars-template">
+
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">DofusTouchEmulateur</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul id="nav" class="nav navbar-nav">
+                        {{#each accounts}}
+                        <li data-accountUsername="{{accountUsername}}"><a href="#"><span class="label label-primary">{{accountCharacter}}</span></a></li>
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        {{#each accounts}}
+        <webview data-accountUsername="{{accountUsername}}" class="game_frame" src="game_frame.html" nodeintegration></webview>
+        {{/each}}
+
+    </script>
+
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        function eventListener()
+        {
+            $('window').trigger('resize');
+
+            window.onresize = function() {
+                $('.game_frame').width($(window).width());
+                $('.game_frame').height($(window).height() - 50);
+            };
+
+            $('.game_frame:first').show();
+            $('li[data-accountUsername]:first').addClass('active');
+
+            $('li[data-accountUsername] > a').click(function(e) {
+                e.preventDefault();
+                var accountUsername = $(this).parent().attr('data-accountUsername');
+                $('.game_frame').hide();
+                $('.game_frame[data-accountUsername="'+accountUsername+'"]').show();
+                $('li[data-accountUsername]').removeClass('active');
+                $(this).parent().addClass('active');
+            });
+        }
+
+        $(function()
+        {
+            const handlebars = require('handlebars');
+            const Emulator = require('electron').remote.require('./main');
+            const app = require('electron').remote;
+
+            var source = $('#template').html();
+            var template = handlebars.compile(source);
+            var html = template({
+                accounts: app.getCurrentWindow().accounts
+            });
+            $('#content').html(html);
+
+            eventListener();
+        });
+    </script>
+
+</body>
+</html>

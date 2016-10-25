@@ -1,0 +1,88 @@
+<div id="content"></div>
+
+<script id="template" type="text/x-handlebars-template">
+    <div class="container-fluid">
+
+        <fieldset id="connectionDashboard">
+            <legend>Connexion</legend>
+            <div class="container-fluid">
+                <div class="col-xs-6 monoAccount">
+                    <div class="form-group">
+                        <label for="monoAccountInput">Compte :</label>
+                        <select class="form-control" id="monoAccountInput">
+                            <!--<option value="">Connexion manuelle</option>-->
+                            {{#each accounts}}
+                                <option value="{{accountUsername}}">{{accountUsername}}</option>
+                            {{/each}}
+                        </select>
+                        <button type="button" class="btn btn-primary btn-lg connectionBtn btn-block">Mono compte</button>
+                    </div>
+                </div>
+
+                <div class="col-xs-6 multiAccounts">
+                    <div class="form-group">
+                        <label for="multiAccountInput">Team :</label>
+                        <select class="form-control" id="multiAccountInput">
+                            <!--<option value="">Aucune team</option>-->
+                            {{#each teams}}
+                                <option value="{{teamName}}">{{teamName}}</option>
+                            {{/each}}
+                        </select>
+                        <button type="button" class="btn btn-success btn-lg connectionBtn btn-block">Multi-comptes</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</script>
+
+<script>
+
+    function eventListener()
+    {
+        if (Emulator.db.get('teams').value().length === 0) {
+            $('.multiAccounts button, .multiAccounts select').attr('disabled', 'disabled');
+        }
+
+        if (Emulator.db.get('accounts').value().length === 0) {
+            $('.monoAccount select').attr('disabled', 'disabled');
+        }
+
+        $('.monoAccount .connectionBtn').click(function(e) {
+           e.preventDefault();
+            var value = $('#monoAccountInput').val();
+            var account = "";
+            if (value != '')
+                account = Emulator.db.get('accounts').find({accountUsername: value}).value();
+            console.log(account);
+            Emulator.openGameWindow(account);
+        });
+
+        $('.multiAccounts .connectionBtn').click(function(e) {
+            e.preventDefault();
+            var teamName = $('#multiAccountInput').val();
+            var team = Emulator.db.get('teams').find({teamName: teamName}).value();
+            var accounts = team.accounts;
+            var accounts_obj = [];
+            accounts.forEach(function(accountUsername) {
+                var account = Emulator.db.get('accounts').find({accountUsername: accountUsername}).value();
+                if (account)
+                    accounts_obj.push(account);
+            });
+            Emulator.openMultiGameFrameWindow(accounts_obj);
+        });
+    }
+
+    $(function()
+    {
+        const handlebars = require('handlebars');
+        const Emulator = require('electron').remote.require('./main');
+
+        var source = $('#template').html();
+        var template = handlebars.compile(source);
+        var html = template(Emulator.db.value());
+        $('#content').html(html);
+
+        eventListener();
+    });
+</script>

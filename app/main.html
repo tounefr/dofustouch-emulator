@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/select2.min.css" />
+</head>
+
+<body>
+
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">DofusTouchEmulateur</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul id="nav" class="nav navbar-nav">
+                <li class="active"><a href="dashboard.html" title="Tableau de bord"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Tableau de bord</a></li>
+                <li><a href="accounts.html" title="Gestion des comptes"><span class="glyphicon glyphicon-tag" aria-hidden="true"></span> Gestion comptes</a></li>
+                <li><a href="params.html" title="Paramètres"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Paramètres globaux</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="content"></div>
+
+<script>window.$ = window.jQuery = require('jquery');</script>
+<script src="assets/js/jquery.cookie.js"></script>
+<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script src="assets/js/select2.full.min.js"></script>
+<script>
+    var handlebars = require('handlebars');
+    const Emulator = require('electron').remote.require('./main');
+
+    $('#nav li a').click(function(e) {
+       e.preventDefault();
+        $('#content').load($(this).attr('href'));
+        document.title = $(this).attr('title');
+        $('#nav li').removeClass('active');
+        $(this).parent().addClass('active');
+    });
+
+    function load()
+    {
+        var currentPage = $('#nav li[class="active"] a').attr('href');
+        $('#content').load(currentPage);
+    }
+
+    $(function() {
+        $('#content').load('dashboard.html');
+    });
+</script>
+
+</body>
+</html>

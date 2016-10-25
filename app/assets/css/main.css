@@ -1,0 +1,45 @@
+
+a:visited, a:hover, a:active {
+    color: inherit;
+}
+
+#account_form {
+    padding: 0;
+}
+
+#account_form_table {
+    margin-bottom: 0;
+}
+
+#list-teams-table {
+    margin-top: 20px;
+}
+
+#list-teams-table td, #add_account_form td {
+    text-align: center;
+}
+
+input.auto_connect {
+    display: block;
+    margin: auto;
+}
+
+nav {
+    border-radius: 0;
+}
+
+.connectionBtn {
+    display: block;
+    margin: auto;
+}
+
+#connectionDashboard select, #connectionDashboard button {
+    margin-top: 20px;
+}
+
+#connectionDashboard label {
+    display: block;
+    margin: auto;
+    text-align: center;
+    font-size: 16px;
+}
